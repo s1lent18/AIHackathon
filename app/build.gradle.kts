@@ -123,4 +123,16 @@ dependencies {
     implementation(libs.barcode.scanning)
 
     implementation(libs.play.services.nearby)
+
+    // Charting
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
+    implementation(libs.vico.core)
+
+    // Lottie Animations
+    implementation(libs.lottie.compose)
+
+    // Networking
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
 }
