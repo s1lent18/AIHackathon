@@ -14,7 +14,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AIHackathonTheme {
-
+                com.example.aihackaton.ui.navigation.AppNavigation()
             }
         }
     }
