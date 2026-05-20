@@ -27,18 +27,26 @@ class TerminalViewModel @Inject constructor(
     
     private val _inputText = MutableStateFlow("")
     val inputText: StateFlow<String> = _inputText
+    
+    private val _documentUrl = MutableStateFlow("")
+    val documentUrl: StateFlow<String> = _documentUrl
 
     fun updateInputText(text: String) {
         _inputText.value = text
     }
 
+    fun updateDocumentUrl(url: String) {
+        _documentUrl.value = url
+    }
+
     fun analyzeSignal() {
         val input = _inputText.value
-        if (input.isBlank()) return
+        val url = _documentUrl.value
+        if (input.isBlank() && url.isBlank()) return
         
         _uiState.value = TerminalState.Loading
         viewModelScope.launch {
-            val result = repository.analyzeSignal("aliraza-agent-test", input)
+            val result = repository.analyzeSignal("aliraza-agent-test", input, url.takeIf { it.isNotBlank() })
             result.onSuccess { response ->
                 _uiState.value = TerminalState.Success(response)
             }
@@ -51,5 +59,6 @@ class TerminalViewModel @Inject constructor(
     fun resetState() {
         _uiState.value = TerminalState.Idle
         _inputText.value = ""
+        _documentUrl.value = ""
     }
 }

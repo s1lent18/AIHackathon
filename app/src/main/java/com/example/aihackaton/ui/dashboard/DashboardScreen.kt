@@ -14,6 +14,7 @@ import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.core.entry.entryModelOf
+import com.example.aihackaton.ui.theme.CircuitTeal
 import com.patrykandpatrick.vico.core.axis.AxisPosition
 import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
 import java.text.NumberFormat
@@ -27,7 +28,7 @@ fun DashboardScreen(viewModel: DashboardViewModel = hiltViewModel()) {
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Executive Portfolio Dashboard") })
+            TopAppBar(title = { Text("Executive Portfolio Dashboard", color = MaterialTheme.colorScheme.primary) })
         }
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
@@ -60,7 +61,7 @@ fun DashboardScreen(viewModel: DashboardViewModel = hiltViewModel()) {
                         }
                         
                         item {
-                            Text("Performance Trend", style = MaterialTheme.typography.titleLarge)
+                            Text("Performance Trend", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
                             if (data.history.isNotEmpty()) {
                                 // Simple mapping to Vico chart entries
                                 val chartEntryModel = entryModelOf(*data.history.map { it.totalValue.toFloat() }.toTypedArray())
@@ -75,7 +76,13 @@ fun DashboardScreen(viewModel: DashboardViewModel = hiltViewModel()) {
                                     }
                                 }
                                 Chart(
-                                    chart = lineChart(),
+                                    chart = lineChart(
+                                        lines = listOf(
+                                            com.patrykandpatrick.vico.compose.chart.line.lineSpec(
+                                                lineColor = CircuitTeal
+                                            )
+                                        )
+                                    ),
                                     model = chartEntryModel,
                                     startAxis = rememberStartAxis(),
                                     bottomAxis = rememberBottomAxis(valueFormatter = bottomAxisValueFormatter),
@@ -86,7 +93,7 @@ fun DashboardScreen(viewModel: DashboardViewModel = hiltViewModel()) {
                         }
                         
                         item {
-                            Text("Asset Allocation Matrix", style = MaterialTheme.typography.titleLarge)
+                            Text("Asset Allocation Matrix", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
                         }
                         
                         items(data.positions) { position ->
@@ -96,8 +103,25 @@ fun DashboardScreen(viewModel: DashboardViewModel = hiltViewModel()) {
                                     Text(position.symbol, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                                        Text("Shares: ${position.shares}")
-                                        Text("Avg Price: ${formatCurrency(position.averagePrice)}")
+                                        Text("Shares: ${position.shares}", style = MaterialTheme.typography.bodyMedium)
+                                        Column(horizontalAlignment = androidx.compose.ui.Alignment.End) {
+                                            Text("Avg Price: ${formatCurrency(position.averagePrice)}", style = MaterialTheme.typography.bodyMedium)
+                                            position.livePrice?.let { livePrice ->
+                                                val color = if (livePrice > position.averagePrice) {
+                                                    androidx.compose.ui.graphics.Color(0xFF4CAF50)
+                                                } else if (livePrice < position.averagePrice) {
+                                                    androidx.compose.ui.graphics.Color(0xFFF44336)
+                                                } else {
+                                                    MaterialTheme.colorScheme.onSurface
+                                                }
+                                                Text(
+                                                    text = "Live Price: ${formatCurrency(livePrice)}",
+                                                    color = color,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -127,14 +151,20 @@ fun KPICards(totalValue: Double, cashBalance: Double, nav: Double) {
 
 @Composable
 fun KPICard(title: String, value: String, modifier: Modifier = Modifier) {
-    Card(modifier = modifier) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = com.example.aihackaton.ui.theme.HorizonNavy,
+            contentColor = androidx.compose.ui.graphics.Color.White
+        )
+    ) {
         Column(
             modifier = Modifier.padding(16.dp),
             horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
         ) {
-            Text(text = title, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(text = title, style = MaterialTheme.typography.bodyMedium, color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.8f))
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(text = value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = androidx.compose.ui.graphics.Color.White)
         }
     }
 }

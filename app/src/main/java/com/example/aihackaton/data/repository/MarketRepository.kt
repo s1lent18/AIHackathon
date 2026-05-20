@@ -14,9 +14,9 @@ class MarketRepository @Inject constructor(
     private val api: MarketPulseApi
 ) {
     private var cachedDashboard: DashboardResponse? = null
-    suspend fun analyzeSignal(userId: String, input: String): Result<AnalyzeSignalResponse> = withContext(Dispatchers.IO) {
+    suspend fun analyzeSignal(userId: String, input: String, documentUrl: String? = null): Result<AnalyzeSignalResponse> = withContext(Dispatchers.IO) {
         try {
-            val request = AnalyzeSignalRequest(userId = userId, unstructuredInput = input)
+            val request = AnalyzeSignalRequest(userId = userId, unstructuredInput = input, documentUrl = documentUrl)
             val response = api.analyzeSignal(request)
             if (response.isSuccessful) {
                 response.body()?.let {
@@ -41,6 +41,21 @@ class MarketRepository @Inject constructor(
             if (response.isSuccessful) {
                 response.body()?.let {
                     cachedDashboard = it
+                    Result.success(it)
+                } ?: Result.failure(Exception("Empty response body"))
+            } else {
+                Result.failure(Exception("Error ${response.code()}: ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getLivePrices(userId: String): Result<List<com.example.aihackaton.data.model.LivePriceDto>> = withContext(Dispatchers.IO) {
+        try {
+            val response = api.getLivePrices(userId)
+            if (response.isSuccessful) {
+                response.body()?.let {
                     Result.success(it)
                 } ?: Result.failure(Exception("Empty response body"))
             } else {

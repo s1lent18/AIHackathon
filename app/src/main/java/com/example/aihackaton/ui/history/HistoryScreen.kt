@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,15 +20,21 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.aihackaton.data.model.TradeLog
 import java.text.NumberFormat
 import java.util.Locale
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import com.example.aihackaton.ui.theme.HorizonNavy
+import com.example.aihackaton.ui.theme.CircuitTeal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(viewModel: HistoryViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val currentFilter by viewModel.currentFilter.collectAsState()
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Historical Audit Trail") })
+            TopAppBar(title = { Text("Trade History Explorer") })
         }
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
@@ -43,13 +50,24 @@ fun HistoryScreen(viewModel: HistoryViewModel = hiltViewModel()) {
                     )
                 }
                 is HistoryState.Success -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(state.logs) { log ->
-                            TradeLogCard(log)
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        PerformanceHeader(state)
+                        
+                        InteractiveControls(
+                            searchQuery = searchQuery,
+                            onSearchQueryChange = viewModel::updateSearchQuery,
+                            currentFilter = currentFilter,
+                            onFilterChange = viewModel::updateFilter
+                        )
+
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(state.filteredLogs) { log ->
+                                TradeLogCard(log)
+                            }
                         }
                     }
                 }
@@ -59,13 +77,100 @@ fun HistoryScreen(viewModel: HistoryViewModel = hiltViewModel()) {
 }
 
 @Composable
+fun PerformanceHeader(state: HistoryState.Success) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        PerformanceCard(title = "Total Buy", value = state.totalBuyValue, modifier = Modifier.weight(1f))
+        PerformanceCard(title = "Total Sell", value = state.totalSellValue, modifier = Modifier.weight(1f))
+        PerformanceCard(title = "Net Margin", value = state.netMargin, modifier = Modifier.weight(1f))
+    }
+}
+
+@Composable
+fun PerformanceCard(title: String, value: Double, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = HorizonNavy,
+            contentColor = Color.White
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(text = title, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.8f))
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = formatCurrency(value), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun InteractiveControls(
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    currentFilter: TradeFilter,
+    onFilterChange: (TradeFilter) -> Unit
+) {
+    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            FilterChipItem("All Trades", currentFilter == TradeFilter.ALL) { onFilterChange(TradeFilter.ALL) }
+            FilterChipItem("Buys", currentFilter == TradeFilter.BUY_ONLY) { onFilterChange(TradeFilter.BUY_ONLY) }
+            FilterChipItem("Sells", currentFilter == TradeFilter.SELL_ONLY) { onFilterChange(TradeFilter.SELL_ONLY) }
+        }
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = onSearchQueryChange,
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Search by Symbol...") },
+            trailingIcon = { Icon(Icons.Filled.Search, contentDescription = "Search") },
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = CircuitTeal,
+                unfocusedBorderColor = HorizonNavy.copy(alpha = 0.5f)
+            )
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FilterChipItem(label: String, selected: Boolean, onClick: () -> Unit) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { Text(label) },
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = CircuitTeal,
+            selectedLabelColor = Color.White,
+        ),
+        border = if (!selected) FilterChipDefaults.filterChipBorder(borderColor = HorizonNavy, enabled = true, selected = false) else null
+    )
+}
+
+@Composable
 fun TradeLogCard(log: TradeLog) {
     var expanded by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { expanded = !expanded }
+            .clickable { expanded = !expanded },
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        border = BorderStroke(1.dp, HorizonNavy)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -74,16 +179,19 @@ fun TradeLogCard(log: TradeLog) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val actionColor = if (log.action == "BUY") Color(0xFF4CAF50) else Color(0xFFF44336)
                     Text(
                         text = log.action,
-                        color = if (log.action == "BUY") Color(0xFF4CAF50) else Color(0xFFF44336),
-                        fontWeight = FontWeight.Bold
+                        color = actionColor,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium
                     )
-                    Text(text = log.symbol, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                    Text(text = log.symbol, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, color = HorizonNavy)
                 }
                 Icon(
                     imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                    contentDescription = "Expand"
+                    contentDescription = "Expand",
+                    tint = HorizonNavy
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
@@ -91,17 +199,17 @@ fun TradeLogCard(log: TradeLog) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Quantity: ${log.quantity}")
-                Text("Price: ${formatCurrency(log.price)}")
+                Text("Quantity: ${log.quantity}", style = MaterialTheme.typography.bodyMedium, color = Color.Black)
+                Text("Price: ${formatCurrency(log.price)}", style = MaterialTheme.typography.bodyMedium, color = Color.Black)
             }
 
             AnimatedVisibility(visible = expanded) {
                 Column(modifier = Modifier.padding(top = 12.dp)) {
-                    HorizontalDivider()
+                    HorizontalDivider(color = HorizonNavy.copy(alpha = 0.2f))
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Agent Reasoning:", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodySmall)
+                    Text("Agent Reasoning:", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodySmall, color = HorizonNavy)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = log.reasoning, style = MaterialTheme.typography.bodyMedium)
+                    Text(text = log.reasoning, style = MaterialTheme.typography.bodyMedium, color = Color.DarkGray)
                 }
             }
         }

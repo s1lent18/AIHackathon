@@ -37,7 +37,9 @@ fun AppNavigation() {
     val navController = rememberNavController()
     Scaffold(
         bottomBar = {
-            NavigationBar {
+            NavigationBar(
+                containerColor = com.example.aihackaton.ui.theme.HorizonNavy
+            ) {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
                 items.forEach { screen ->
@@ -45,6 +47,13 @@ fun AppNavigation() {
                         icon = screen.icon,
                         label = { Text(screen.title) },
                         selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = androidx.compose.ui.graphics.Color.White,
+                            unselectedIconColor = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.6f),
+                            selectedTextColor = androidx.compose.ui.graphics.Color.White,
+                            unselectedTextColor = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.6f),
+                            indicatorColor = com.example.aihackaton.ui.theme.CircuitTeal.copy(alpha = 0.3f)
+                        ),
                         onClick = {
                             navController.navigate(screen.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {

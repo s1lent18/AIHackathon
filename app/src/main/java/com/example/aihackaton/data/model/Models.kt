@@ -5,7 +5,8 @@ import com.google.gson.annotations.SerializedName
 // POST /api/analysis/analyze-signal
 data class AnalyzeSignalRequest(
     @SerializedName("userId") val userId: String,
-    @SerializedName("unstructuredInput") val unstructuredInput: String
+    @SerializedName("unstructuredInput") val unstructuredInput: String,
+    @SerializedName("documentUrl") val documentUrl: String? = null
 )
 
 data class AnalyzeSignalResponse(
@@ -61,7 +62,8 @@ data class PositionDetail(
     @SerializedName("symbol") val symbol: String,
     @SerializedName("shares") val shares: Int,
     @SerializedName("averagePrice") val averagePrice: Double,
-    @SerializedName("updatedAt") val updatedAt: String
+    @SerializedName("updatedAt") val updatedAt: String,
+    var livePrice: Double? = null
 )
 
 data class TradeLog(
@@ -80,4 +82,9 @@ data class HistorySnapshot(
     @SerializedName("totalValue") val totalValue: Double,
     @SerializedName("cashBalance") val cashBalance: Double,
     @SerializedName("assetValue") val assetValue: Double
+)
+
+data class LivePriceDto(
+    @SerializedName("symbol") val symbol: String,
+    @SerializedName("price") val price: Double
 )

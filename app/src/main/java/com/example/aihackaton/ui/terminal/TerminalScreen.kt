@@ -13,12 +13,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.aihackaton.ui.theme.CircuitTeal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TerminalScreen(viewModel: TerminalViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     val inputText by viewModel.inputText.collectAsState()
+    val documentUrl by viewModel.documentUrl.collectAsState()
 
     Column(
         modifier = Modifier
@@ -36,7 +38,28 @@ fun TerminalScreen(viewModel: TerminalViewModel = hiltViewModel()) {
                 .fillMaxWidth()
                 .height(150.dp),
             placeholder = { Text("Paste raw PSX news or economic text here...") },
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = CircuitTeal,
+                unfocusedBorderColor = CircuitTeal.copy(alpha = 0.5f),
+                focusedTextColor = CircuitTeal,
+                unfocusedTextColor = CircuitTeal
+            )
+        )
+
+        OutlinedTextField(
+            value = documentUrl,
+            onValueChange = viewModel::updateDocumentUrl,
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Document URL (e.g., PSX News Link)") },
+            shape = RoundedCornerShape(12.dp),
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = CircuitTeal,
+                unfocusedBorderColor = CircuitTeal.copy(alpha = 0.5f),
+                focusedTextColor = CircuitTeal,
+                unfocusedTextColor = CircuitTeal
+            )
         )
 
         Button(
@@ -44,7 +67,7 @@ fun TerminalScreen(viewModel: TerminalViewModel = hiltViewModel()) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            enabled = uiState !is TerminalState.Loading && inputText.isNotBlank()
+            enabled = uiState !is TerminalState.Loading && (inputText.isNotBlank() || documentUrl.isNotBlank())
         ) {
             if (uiState is TerminalState.Loading) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
@@ -70,27 +93,27 @@ fun TerminalOutput(state: TerminalState.Success) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF1E1E1E), RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(">> AGENT 1: Insight Extraction", color = Color.Green, fontFamily = FontFamily.Monospace)
-        Text(state.response.insightExtraction, color = Color.LightGray, fontFamily = FontFamily.Monospace)
+        Text(">> AGENT 1: Insight Extraction", color = CircuitTeal, fontFamily = FontFamily.Monospace)
+        Text(state.response.insightExtraction, color = Color.White, fontFamily = FontFamily.Monospace)
         
         HorizontalDivider(color = Color.DarkGray)
         
-        Text(">> AGENT 2: Impact Analysis", color = Color.Green, fontFamily = FontFamily.Monospace)
-        Text(state.response.impactAnalysis, color = Color.LightGray, fontFamily = FontFamily.Monospace)
+        Text(">> AGENT 2: Impact Analysis", color = CircuitTeal, fontFamily = FontFamily.Monospace)
+        Text(state.response.impactAnalysis, color = Color.White, fontFamily = FontFamily.Monospace)
         
         HorizontalDivider(color = Color.DarkGray)
         
-        Text(">> AGENT 3: Execution Plan", color = Color.Green, fontFamily = FontFamily.Monospace)
-        Text("Action: ${state.response.executionPlan.action} ${state.response.executionPlan.quantity} ${state.response.executionPlan.symbol}", color = Color.LightGray, fontFamily = FontFamily.Monospace)
-        Text("Reasoning: ${state.response.executionPlan.reasoning}", color = Color.LightGray, fontFamily = FontFamily.Monospace)
+        Text(">> AGENT 3: Execution Plan", color = CircuitTeal, fontFamily = FontFamily.Monospace)
+        Text("Action: ${state.response.executionPlan.action} ${state.response.executionPlan.quantity} ${state.response.executionPlan.symbol}", color = Color.White, fontFamily = FontFamily.Monospace)
+        Text("Reasoning: ${state.response.executionPlan.reasoning}", color = Color.White, fontFamily = FontFamily.Monospace)
         
         HorizontalDivider(color = Color.DarkGray)
         
-        Text(">> SYSTEM: Trade Result", color = Color.Cyan, fontFamily = FontFamily.Monospace)
-        Text(state.response.tradeResult.message, color = Color.LightGray, fontFamily = FontFamily.Monospace)
+        Text(">> SYSTEM: Trade Result", color = CircuitTeal, fontFamily = FontFamily.Monospace)
+        Text(state.response.tradeResult.message, color = Color.White, fontFamily = FontFamily.Monospace)
     }
 }

@@ -43,6 +43,19 @@ class DashboardViewModel @Inject constructor(
             result.onSuccess { data ->
                 _uiState.value = DashboardState.Success(data)
                 _isRefreshing.value = false
+                
+                // Fetch live prices in parallel to avoid blocking the initial dashboard render
+                val livePricesResult = repository.getLivePrices("aliraza-agent-test")
+                livePricesResult.onSuccess { livePrices ->
+                    val currentState = _uiState.value
+                    if (currentState is DashboardState.Success) {
+                        val priceMap = livePrices.associateBy { it.symbol }
+                        val updatedPositions = currentState.data.positions.map { pos ->
+                            pos.copy(livePrice = priceMap[pos.symbol]?.price ?: pos.livePrice)
+                        }
+                        _uiState.value = DashboardState.Success(currentState.data.copy(positions = updatedPositions))
+                    }
+                }
             }
             result.onFailure { error ->
                 _uiState.value = DashboardState.Error(error.localizedMessage ?: "Unknown error")

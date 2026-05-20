@@ -3,6 +3,7 @@ package com.example.aihackaton.data.api
 import com.example.aihackaton.data.model.AnalyzeSignalRequest
 import com.example.aihackaton.data.model.AnalyzeSignalResponse
 import com.example.aihackaton.data.model.DashboardResponse
+import com.example.aihackaton.data.model.LivePriceDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -20,4 +21,9 @@ interface MarketPulseApi {
     suspend fun getDashboard(
         @Path("userId") userId: String
     ): Response<DashboardResponse>
+
+    @GET("/api/analysis/live-prices/{userId}")
+    suspend fun getLivePrices(
+        @Path("userId") userId: String
+    ): Response<List<LivePriceDto>>
 }
