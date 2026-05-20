@@ -1,7 +1,14 @@
 package com.example.aihackaton.ui.history
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import com.example.aihackaton.ui.components.shimmerBrush
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -22,8 +29,11 @@ import java.text.NumberFormat
 import java.util.Locale
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.ui.unit.sp
 import com.example.aihackaton.ui.theme.HorizonNavy
 import com.example.aihackaton.ui.theme.CircuitTeal
+import com.example.aihackaton.ui.theme.Lexend
+import java.util.Currency
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,39 +44,89 @@ fun HistoryScreen(viewModel: HistoryViewModel = hiltViewModel()) {
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Trade History Explorer") })
+            TopAppBar(title = { Text(
+                "Trade History Explorer",
+                fontFamily = Lexend
+            ) })
         }
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
-            when (val state = uiState) {
-                is HistoryState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
-                is HistoryState.Error -> {
-                    Text(
-                        text = "Error: ${state.message}",
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-                is HistoryState.Success -> {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        PerformanceHeader(state)
-                        
-                        InteractiveControls(
-                            searchQuery = searchQuery,
-                            onSearchQueryChange = viewModel::updateSearchQuery,
-                            currentFilter = currentFilter,
-                            onFilterChange = viewModel::updateFilter
-                        )
-
-                        LazyColumn(
+            AnimatedContent(
+                targetState = uiState,
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(400)) togetherWith fadeOut(animationSpec = tween(400))
+                },
+                label = "HistoryStateAnimation",
+                modifier = Modifier.fillMaxSize()
+            ) { state ->
+                when (state) {
+                    is HistoryState.Loading -> {
+                        Column(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            items(state.filteredLogs) { log ->
-                                TradeLogCard(log)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                repeat(3) {
+                                    Spacer(modifier = Modifier.weight(1f).height(80.dp).background(shimmerBrush(), shape = RoundedCornerShape(12.dp)))
+                                }
+                            }
+                            
+                            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    repeat(3) {
+                                         Spacer(modifier = Modifier.width(80.dp).height(32.dp).background(shimmerBrush(), shape = RoundedCornerShape(16.dp)))
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Spacer(modifier = Modifier.fillMaxWidth().height(56.dp).background(shimmerBrush(), shape = RoundedCornerShape(12.dp)))
+                            }
+
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                items(5) {
+                                    Spacer(modifier = Modifier.fillMaxWidth().height(100.dp).background(shimmerBrush(), shape = RoundedCornerShape(12.dp)))
+                                }
+                            }
+                        }
+                    }
+                    is HistoryState.Error -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                text = "Error: ${state.message}",
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                    is HistoryState.Success -> {
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            PerformanceHeader(state)
+                            
+                            InteractiveControls(
+                                searchQuery = searchQuery,
+                                onSearchQueryChange = viewModel::updateSearchQuery,
+                                currentFilter = currentFilter,
+                                onFilterChange = viewModel::updateFilter
+                            )
+
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                items(state.filteredLogs) { log ->
+                                    TradeLogCard(log)
+                                }
                             }
                         }
                     }
@@ -103,9 +163,10 @@ fun PerformanceCard(title: String, value: Double, modifier: Modifier = Modifier)
             modifier = Modifier.padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = title, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.8f))
+            Text(text = title, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.8f),
+                fontFamily = Lexend)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = formatCurrency(value), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White)
+            Text(text = formatCurrency(value), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White, fontSize = 8.sp)
         }
     }
 }
@@ -152,7 +213,8 @@ fun FilterChipItem(label: String, selected: Boolean, onClick: () -> Unit) {
     FilterChip(
         selected = selected,
         onClick = onClick,
-        label = { Text(label) },
+        label = { Text(label,
+            fontFamily = Lexend) },
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = CircuitTeal,
             selectedLabelColor = Color.White,
@@ -199,17 +261,21 @@ fun TradeLogCard(log: TradeLog) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Quantity: ${log.quantity}", style = MaterialTheme.typography.bodyMedium, color = Color.Black)
-                Text("Price: ${formatCurrency(log.price)}", style = MaterialTheme.typography.bodyMedium, color = Color.Black)
+                Text("Quantity: ${log.quantity}", style = MaterialTheme.typography.bodyMedium, color = Color.Black,
+                    fontFamily = Lexend)
+                Text("Price: ${formatCurrency(log.price)}", style = MaterialTheme.typography.bodyMedium, color = Color.Black,
+                    fontFamily = Lexend)
             }
 
             AnimatedVisibility(visible = expanded) {
                 Column(modifier = Modifier.padding(top = 12.dp)) {
                     HorizontalDivider(color = HorizonNavy.copy(alpha = 0.2f))
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Agent Reasoning:", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodySmall, color = HorizonNavy)
+                    Text("Agent Reasoning:", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodySmall, color = HorizonNavy,
+                        fontFamily = Lexend)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = log.reasoning, style = MaterialTheme.typography.bodyMedium, color = Color.DarkGray)
+                    Text(text = log.reasoning, style = MaterialTheme.typography.bodyMedium, color = Color.DarkGray,
+                        fontFamily = Lexend)
                 }
             }
         }
@@ -217,6 +283,8 @@ fun TradeLogCard(log: TradeLog) {
 }
 
 fun formatCurrency(amount: Double): String {
-    val format = NumberFormat.getCurrencyInstance(Locale.US)
+    val locale = Locale("en", "PK") // Pakistan
+    val format = NumberFormat.getCurrencyInstance(locale)
+    format.currency = Currency.getInstance("PKR")
     return format.format(amount)
 }

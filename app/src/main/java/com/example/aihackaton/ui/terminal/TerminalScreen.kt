@@ -7,13 +7,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.aihackaton.ui.theme.CircuitTeal
+import com.example.aihackaton.ui.theme.Lexend
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,23 +97,23 @@ fun TerminalOutput(state: TerminalState.Success) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(">> AGENT 1: Insight Extraction", color = CircuitTeal, fontFamily = FontFamily.Monospace)
-        Text(state.response.insightExtraction, color = Color.White, fontFamily = FontFamily.Monospace)
+        Text(">> AGENT 1: Insight Extraction", color = CircuitTeal, fontFamily = Lexend)
+        Text(state.response.insightExtraction, color = MaterialTheme.colorScheme.onSurface, fontFamily = Lexend)
         
         HorizontalDivider(color = Color.DarkGray)
         
-        Text(">> AGENT 2: Impact Analysis", color = CircuitTeal, fontFamily = FontFamily.Monospace)
-        Text(state.response.impactAnalysis, color = Color.White, fontFamily = FontFamily.Monospace)
+        Text(">> AGENT 2: Impact Analysis", color = CircuitTeal, fontFamily = Lexend)
+        Text(state.response.impactAnalysis, color = MaterialTheme.colorScheme.onSurface, fontFamily = Lexend)
         
         HorizontalDivider(color = Color.DarkGray)
         
-        Text(">> AGENT 3: Execution Plan", color = CircuitTeal, fontFamily = FontFamily.Monospace)
-        Text("Action: ${state.response.executionPlan.action} ${state.response.executionPlan.quantity} ${state.response.executionPlan.symbol}", color = Color.White, fontFamily = FontFamily.Monospace)
-        Text("Reasoning: ${state.response.executionPlan.reasoning}", color = Color.White, fontFamily = FontFamily.Monospace)
+        Text(">> AGENT 3: Execution Plan", color = CircuitTeal, fontFamily = Lexend)
+        Text("Action: ${state.response.executionPlan.action} ${state.response.executionPlan.quantity} ${state.response.executionPlan.symbol}", color = MaterialTheme.colorScheme.onSurface, fontFamily = Lexend)
+        Text("Reasoning: ${state.response.executionPlan.reasoning}", color = MaterialTheme.colorScheme.onSurface, fontFamily = Lexend)
         
         HorizontalDivider(color = Color.DarkGray)
         
-        Text(">> SYSTEM: Trade Result", color = CircuitTeal, fontFamily = FontFamily.Monospace)
-        Text(state.response.tradeResult.message, color = Color.White, fontFamily = FontFamily.Monospace)
+        Text(">> SYSTEM: Trade Result", color = CircuitTeal, fontFamily = Lexend)
+        Text(state.response.tradeResult.message, color = MaterialTheme.colorScheme.onSurface, fontFamily = Lexend)
     }
 }
