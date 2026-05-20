@@ -74,24 +74,34 @@ class HistoryViewModel @Inject constructor(
         val query = _searchQuery.value
         val filter = _currentFilter.value
 
-        var filtered = allLogs
+        // 1. Pehle sirf Search Query apply karo
+        var searchFiltered = allLogs
         if (query.isNotBlank()) {
-            filtered = filtered.filter { it.symbol.contains(query, ignoreCase = true) }
-        }
-        
-        filtered = when (filter) {
-            TradeFilter.BUY_ONLY -> filtered.filter { it.action.equals("BUY", ignoreCase = true) }
-            TradeFilter.SELL_ONLY -> filtered.filter { it.action.equals("SELL", ignoreCase = true) }
-            TradeFilter.ALL -> filtered
+            searchFiltered = searchFiltered.filter { it.symbol.contains(query, ignoreCase = true) }
         }
 
-        val totalBuyValue = filtered.filter { it.action.equals("BUY", ignoreCase = true) }.sumOf { it.price * it.quantity }
-        val totalSellValue = filtered.filter { it.action.equals("SELL", ignoreCase = true) }.sumOf { it.price * it.quantity }
+        // 2. Totals calculate karo (Search apply hone ke baad, lekin Buy/Sell filter lagne se pehle)
+        val totalBuyValue = searchFiltered
+            .filter { it.action.equals("BUY", ignoreCase = true) }
+            .sumOf { it.price * it.quantity }
+
+        val totalSellValue = searchFiltered
+            .filter { it.action.equals("SELL", ignoreCase = true) }
+            .sumOf { it.price * it.quantity }
+
         val netMargin = totalSellValue - totalBuyValue
 
+        // 3. Ab list ko display karne ke liye Action (Buy/Sell) filter apply karo
+        val finalFilteredLogs = when (filter) {
+            TradeFilter.BUY_ONLY -> searchFiltered.filter { it.action.equals("BUY", ignoreCase = true) }
+            TradeFilter.SELL_ONLY -> searchFiltered.filter { it.action.equals("SELL", ignoreCase = true) }
+            TradeFilter.ALL -> searchFiltered
+        }
+
+        // 4. State update kardo
         _uiState.value = HistoryState.Success(
             logs = allLogs,
-            filteredLogs = filtered,
+            filteredLogs = finalFilteredLogs,
             totalBuyValue = totalBuyValue,
             totalSellValue = totalSellValue,
             netMargin = netMargin
